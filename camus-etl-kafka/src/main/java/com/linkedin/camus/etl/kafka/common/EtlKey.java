@@ -17,9 +17,9 @@ import org.apache.hadoop.io.WritableComparable;
  * checksum.
  */
 public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
-    public static final Text SERVER = new Text("server");
-    public static final Text SERVICE = new Text("service");
-    public static EtlKey DUMMY_KEY = new EtlKey();
+//    public static final Text SERVER = new Text("server");
+//    public static final Text SERVICE = new Text("service");
+//    public static EtlKey DUMMY_KEY = new EtlKey();
     
     private String leaderId = "";
 	private int partition = 0;
@@ -30,7 +30,7 @@ public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
 	private long time = 0;
 	private String server = "";
 	private String service = "";
-    private MapWritable partitionMap = new MapWritable();
+//    private MapWritable partitionMap = new MapWritable();
 
 
 	/**
@@ -50,7 +50,7 @@ public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
 		this.time = other.time;
 		this.server = other.server;
 		this.service = other.service;
-        this.partitionMap = new MapWritable(other.partitionMap);
+//        this.partitionMap = new MapWritable(other.partitionMap);
 	}
 
 	public EtlKey(String topic, String leaderId, int partition) {
@@ -76,7 +76,7 @@ public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
 												// this time will be used for
 												// debugging.
 	}
-	
+
 	public void clear() {
 		leaderId = "";
 		partition = 0;
@@ -87,24 +87,28 @@ public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
 		time = 0;
 		server = "";
 		service = "";
-        partitionMap = new MapWritable();
+//        partitionMap = new MapWritable();
 	}
 
 	public String getServer() {
-        return partitionMap.get(SERVER).toString();
+//        return partitionMap.get(SERVER).toString();
+        return server;
 	}
 
 	public void setServer(String newServer) {
-        partitionMap.put(SERVER, new Text(newServer));
+//        partitionMap.put(SERVER, new Text(newServer));
+        this.server = newServer;
 	}
 
 	public String getService() {
-        return partitionMap.get(SERVICE).toString();
+//        return partitionMap.get(SERVICE).toString();
+        return service;
 	}
 
 	public void setService(String newService) {
-        partitionMap.put(SERVICE, new Text(newService));
-	}
+        this.service = newService;
+//        partitionMap.put(SERVICE, new Text(newService));
+    }
 
 	public long getTime() {
 		return time;
@@ -143,15 +147,18 @@ public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
 	}
 
     public void put(Writable key, Writable value) {
-        this.partitionMap.put(key, value);
+        throw new RuntimeException("not implemented");
+//        this.partitionMap.put(key, value);
     }
 
     public void setPartition(MapWritable partitionMap) {
-        this.partitionMap = partitionMap;
+        throw new RuntimeException("not implemented");
+//        this.partitionMap = partitionMap;
     }
 
     public MapWritable getPartitionMap() {
-        return partitionMap;
+        throw new RuntimeException("not implemented");
+//        return partitionMap;
     }
 
 	@Override
@@ -165,13 +172,13 @@ public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
 		this.time = in.readLong();
 		this.server = in.readUTF(); // left for legacy
 		this.service = in.readUTF(); // left for legacy
-        this.partitionMap = new MapWritable();
-        try {
-            this.partitionMap.readFields(in);
-        } catch (IOException e) {
-            this.setServer(this.server);
-            this.setService(this.service);
-        }
+//        this.partitionMap = new MapWritable();
+//        try {
+//            this.partitionMap.readFields(in);
+//        } catch (IOException e) {
+//            this.setServer(this.server);
+//            this.setService(this.service);
+//        }
     }
 
 	@Override
@@ -185,7 +192,7 @@ public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
 		out.writeLong(this.time);
 		out.writeUTF(this.server); // left for legacy
 		out.writeUTF(this.service); // left for legacy
-        this.partitionMap.write(out);
+//        this.partitionMap.write(out);
 	}
 
 	@Override
@@ -233,10 +240,10 @@ public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
         builder.append(" time=");
         builder.append(time);
 
-        for (Map.Entry<Writable, Writable> e: partitionMap.entrySet()) {
-            builder.append(" " + e.getKey() + "=");
-            builder.append(e.getValue().toString());
-        }
+//        for (Map.Entry<Writable, Writable> e: partitionMap.entrySet()) {
+//            builder.append(" " + e.getKey() + "=");
+//            builder.append(e.getValue().toString());
+//        }
 
         return builder.toString();
 	}

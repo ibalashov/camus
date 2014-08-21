@@ -12,9 +12,7 @@ import org.apache.hadoop.io.Writable;
  *
  * @param <R> The type of decoded payload
  */
-public class CamusWrapper<R> {
-    private R record;
-    private long timestamp;
+public class CamusWrapper<R> extends CamusWrapperLight<R> {
     private MapWritable partitionMap;
 
     public CamusWrapper(R record) {
@@ -26,34 +24,18 @@ public class CamusWrapper<R> {
     }
 
     public CamusWrapper(R record, long timestamp, String server, String service) {
-        this.record = record;
-        this.timestamp = timestamp;
-        this.partitionMap = new MapWritable();
-        partitionMap.put(new Text("server"), new Text(server));
-        partitionMap.put(new Text("service"), new Text(service));
-    }
-
-    /**
-     * Returns the payload record for a single message
-     * @return
-     */
-    public R getRecord() {
-        return record;
-    }
-
-    /**
-     * Returns current if not set by the decoder
-     * @return
-     */
-    public long getTimestamp() {
-        return timestamp;
+        super(record, timestamp);
+//        this.partitionMap = new MapWritable();
+//        partitionMap.put(new Text("server"), new Text(server));
+//        partitionMap.put(new Text("service"), new Text(service));
     }
 
     /**
      * Add a value for partitions
      */
     public void put(Writable key, Writable value) {
-        partitionMap.put(key, value);
+        throw new RuntimeException("not implemented");
+//        partitionMap.put(key, value);
     }
 
     /**
@@ -61,14 +43,16 @@ public class CamusWrapper<R> {
      * @return the value for the given key
      */
     public Writable get(Writable key) {
-        return partitionMap.get(key);
+        throw new RuntimeException("not implemented");
+//        return partitionMap.get(key);
     }
 
     /**
      * Get all the partition key/partitionMap
      */
     public MapWritable getPartitionMap() {
-        return partitionMap;
+        throw new RuntimeException("not implemented");
+//        return partitionMap;
     }
 
 }

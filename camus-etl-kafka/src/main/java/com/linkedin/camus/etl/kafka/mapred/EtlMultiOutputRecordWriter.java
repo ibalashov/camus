@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 
+import com.linkedin.camus.coders.CamusWrapperLight;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.SequenceFile;
@@ -12,7 +13,6 @@ import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.joda.time.DateTime;
 
-import com.linkedin.camus.coders.CamusWrapper;
 import com.linkedin.camus.etl.IEtlKey;
 import com.linkedin.camus.etl.RecordWriterProvider;
 import com.linkedin.camus.etl.kafka.common.EtlKey;
@@ -25,8 +25,8 @@ public class EtlMultiOutputRecordWriter extends RecordWriter<EtlKey, Object>
   private String currentTopic = "";
   private long beginTimeStamp = 0;
 
-  private HashMap<String, RecordWriter<IEtlKey, CamusWrapper>> dataWriters =
-      new HashMap<String, RecordWriter<IEtlKey, CamusWrapper>>();
+  private HashMap<String, RecordWriter<IEtlKey, CamusWrapperLight>> dataWriters =
+      new HashMap<String, RecordWriter<IEtlKey, CamusWrapperLight>>();
 
   private EtlMultiOutputCommitter committer;
 
@@ -71,7 +71,7 @@ public class EtlMultiOutputRecordWriter extends RecordWriter<EtlKey, Object>
   public void write(EtlKey key, Object val) throws IOException,
       InterruptedException
   {
-    if (val instanceof CamusWrapper<?>)
+    if (val instanceof CamusWrapperLight<?>)
     {
       if (key.getTime() < beginTimeStamp)
       {
@@ -83,7 +83,7 @@ public class EtlMultiOutputRecordWriter extends RecordWriter<EtlKey, Object>
       {
         if (!key.getTopic().equals(currentTopic))
         {
-          for (RecordWriter<IEtlKey, CamusWrapper> writer : dataWriters.values())
+          for (RecordWriter<IEtlKey, CamusWrapperLight> writer : dataWriters.values())
           {
             writer.close(context);
           }
@@ -92,7 +92,7 @@ public class EtlMultiOutputRecordWriter extends RecordWriter<EtlKey, Object>
         }
 
         committer.addCounts(key);
-        CamusWrapper value = (CamusWrapper) val;
+        CamusWrapperLight value = (CamusWrapperLight) val;
         String workingFileName = EtlMultiOutputFormat.getWorkingFileName(context, key);
         if (!dataWriters.containsKey(workingFileName))
         {
@@ -110,9 +110,9 @@ public class EtlMultiOutputRecordWriter extends RecordWriter<EtlKey, Object>
     }
   }
 
-  private RecordWriter<IEtlKey, CamusWrapper> getDataRecordWriter(TaskAttemptContext context,
+  private RecordWriter<IEtlKey, CamusWrapperLight> getDataRecordWriter(TaskAttemptContext context,
                                                                   String fileName,
-                                                                  CamusWrapper value) throws IOException,
+                                                                  CamusWrapperLight value) throws IOException,
       InterruptedException
   {
     RecordWriterProvider recordWriterProvider = null;

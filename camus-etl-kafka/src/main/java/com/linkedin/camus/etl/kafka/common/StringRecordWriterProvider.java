@@ -1,6 +1,6 @@
 package com.linkedin.camus.etl.kafka.common;
 
-import com.linkedin.camus.coders.CamusWrapper;
+import com.linkedin.camus.coders.CamusWrapperLight;
 import com.linkedin.camus.etl.IEtlKey;
 import com.linkedin.camus.etl.RecordWriterProvider;
 import com.linkedin.camus.etl.kafka.mapred.EtlMultiOutputFormat;
@@ -8,7 +8,6 @@ import com.linkedin.camus.etl.kafka.mapred.EtlMultiOutputFormat;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import org.apache.avro.file.CodecFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -21,7 +20,6 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.apache.log4j.Logger;
 
 
 /**
@@ -71,10 +69,10 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
     }
 
     @Override
-    public RecordWriter<IEtlKey, CamusWrapper> getDataRecordWriter(
+    public RecordWriter<IEtlKey, CamusWrapperLight> getDataRecordWriter(
             TaskAttemptContext  context,
             String              fileName,
-            CamusWrapper        camusWrapper,
+            CamusWrapperLight camusWrapperLight,
             FileOutputCommitter committer) throws IOException, InterruptedException {
 
         // If recordDelimiter hasn't been initialized, do so now
@@ -123,7 +121,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
         */
     }
     
-    protected static class ByteRecordWriter extends RecordWriter<IEtlKey, CamusWrapper> {
+    protected static class ByteRecordWriter extends RecordWriter<IEtlKey, CamusWrapperLight> {
         private DataOutputStream out;
         private String recordDelimiter;
 
@@ -133,7 +131,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
         }
 
         @Override
-        public void write(IEtlKey ignore, CamusWrapper value) throws IOException {
+        public void write(IEtlKey ignore, CamusWrapperLight value) throws IOException {
             boolean nullValue = value == null;
             if (!nullValue) {
             	String record = (String)value.getRecord() + recordDelimiter;

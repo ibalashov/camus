@@ -1,6 +1,7 @@
 package com.linkedin.camus.etl.kafka.mapred;
 
 import com.linkedin.camus.coders.CamusWrapper;
+import com.linkedin.camus.coders.CamusWrapperLight;
 import com.linkedin.camus.coders.MessageDecoder;
 import com.linkedin.camus.etl.kafka.CamusJob;
 import com.linkedin.camus.etl.kafka.coders.MessageDecoderFactory;
@@ -26,7 +27,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
-public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
+public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapperLight> {
     private static final String PRINT_MAX_DECODER_EXCEPTIONS = "max.decoder.exceptions.to.print";
     private static final String DEFAULT_SERVER = "server";
     private static final String DEFAULT_SERVICE = "service";
@@ -43,7 +44,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
     private final BytesWritable msgValue = new BytesWritable();
     private final BytesWritable msgKey = new BytesWritable();
     private final EtlKey key = new EtlKey();
-    private CamusWrapper value;
+    private CamusWrapperLight value;
 
     private int maxPullHours = 0;
     private int exceptionCount = 0;
@@ -174,7 +175,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
     }
 
     @Override
-    public CamusWrapper getCurrentValue() throws IOException, InterruptedException {
+    public CamusWrapperLight getCurrentValue() throws IOException, InterruptedException {
         return value;
     }
 
@@ -231,8 +232,8 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                 while (reader.getNext(key, msgValue, msgKey)) {
                     count++;
                     context.progress();
-                    mapperContext.getCounter("total", "data-read").increment(msgValue.getLength());
-                    mapperContext.getCounter("total", "event-count").increment(1);
+//                    mapperContext.getCounter("total", "data-read").increment(msgValue.getLength());
+//                    mapperContext.getCounter("total", "event-count").increment(1);
                     byte[] bytes = getBytes(msgValue);
                     byte[] keyBytes = getBytes(msgKey);
                     // check the checksum of message.
@@ -249,7 +250,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                     }
 
                     long tempTime = System.currentTimeMillis();
-                    CamusWrapper wrapper;
+                    CamusWrapperLight wrapper;
                     try {
                         wrapper = getWrappedRecord(key.getTopic(), bytes);
                     } catch (Exception e) {
@@ -272,7 +273,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                     long timeStamp = wrapper.getTimestamp();
                     try {
                         key.setTime(timeStamp);
-                        key.setPartition(wrapper.getPartitionMap());
+//                        key.setPartition(wrapper.getPartitionMap());
                         setServerService();
                     } catch (Exception e) {
                         mapperContext.write(key, new ExceptionWritable(e));
@@ -305,11 +306,10 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapper> {
                     value = wrapper;
                     long decodeTime = ((secondTime - tempTime));
 
-                    mapperContext.getCounter("total", "decode-time(ms)").increment(decodeTime);
+//                    mapperContext.getCounter("total", "decode-time(ms)").increment(decodeTime);
 
                     if (reader != null) {
-                        mapperContext.getCounter("total", "request-time(ms)").increment(
-                                reader.getFetchTime());
+//                        mapperContext.getCounter("total", "request-time(ms)").increment(reader.getFetchTime());
                     }
                     return true;
                 }
