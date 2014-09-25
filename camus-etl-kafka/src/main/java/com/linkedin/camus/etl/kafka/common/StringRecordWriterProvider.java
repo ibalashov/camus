@@ -1,6 +1,7 @@
 package com.linkedin.camus.etl.kafka.common;
 
-import com.linkedin.camus.coders.CamusWrapperLight;
+import com.linkedin.camus.coders.CamusWrapperBase;
+import com.linkedin.camus.coders.KeyedCamusWrapper;
 import com.linkedin.camus.etl.IEtlKey;
 import com.linkedin.camus.etl.RecordWriterProvider;
 import com.linkedin.camus.etl.kafka.mapred.EtlMultiOutputFormat;
@@ -69,10 +70,10 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
     }
 
     @Override
-    public RecordWriter<IEtlKey, CamusWrapperLight> getDataRecordWriter(
+    public RecordWriter<IEtlKey, KeyedCamusWrapper> getDataRecordWriter(
             TaskAttemptContext  context,
             String              fileName,
-            CamusWrapperLight camusWrapperLight,
+            CamusWrapperBase camusWrapperBase,
             FileOutputCommitter committer) throws IOException, InterruptedException {
 
         // If recordDelimiter hasn't been initialized, do so now
@@ -121,7 +122,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
         */
     }
     
-    protected static class ByteRecordWriter extends RecordWriter<IEtlKey, CamusWrapperLight> {
+    protected static class ByteRecordWriter extends RecordWriter<IEtlKey, KeyedCamusWrapper> {
         private DataOutputStream out;
         private String recordDelimiter;
 
@@ -131,7 +132,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
         }
 
         @Override
-        public void write(IEtlKey ignore, CamusWrapperLight value) throws IOException {
+        public void write(IEtlKey ignore, KeyedCamusWrapper value) throws IOException {
             boolean nullValue = value == null;
             if (!nullValue) {
             	String record = (String)value.getRecord() + recordDelimiter;

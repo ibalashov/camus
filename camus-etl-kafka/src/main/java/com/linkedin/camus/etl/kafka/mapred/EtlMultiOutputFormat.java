@@ -1,11 +1,13 @@
 package com.linkedin.camus.etl.kafka.mapred;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.JobContext;
@@ -183,11 +185,21 @@ public class EtlMultiOutputFormat extends FileOutputFormat<EtlKey, Object> {
         job.getConfiguration().setBoolean(ETL_RUN_TRACKING_POST, value);
     }
 
-    public static String getWorkingFileName(JobContext context, EtlKey key) throws IOException {
+    public static String getWorkingFileName(JobContext context, EtlKey key, String filename) throws IOException {
         Partitioner partitioner = getPartitioner(context, key.getTopic());
 //        String topicProcessed = key.getTopic().replaceAll("\\.", "_");
-        String topicProcessed = key.getTopic();
-        return "data." + topicProcessed + "." + key.getLeaderId() + "." + key.getPartition() + "." + partitioner.encodePartition(context, key);
+
+        List parts = Lists.newArrayList(
+                "data",
+                key.getTopic(),
+                key.getLeaderId(),
+                key.getPartition(),
+                partitioner.encodePartition(context, key)
+        );
+        if (!Strings.isNullOrEmpty(filename)) {
+            parts.add(filename);
+        }
+        return Joiner.on('.').join(parts);
     }
     
     public static void setDefaultPartitioner(JobContext job, Class<?> cls) {

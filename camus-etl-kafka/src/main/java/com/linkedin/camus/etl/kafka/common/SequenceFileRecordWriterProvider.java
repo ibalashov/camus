@@ -1,6 +1,7 @@
 package com.linkedin.camus.etl.kafka.common;
 
-import com.linkedin.camus.coders.CamusWrapperLight;
+import com.linkedin.camus.coders.CamusWrapperBase;
+import com.linkedin.camus.coders.KeyedCamusWrapper;
 import com.linkedin.camus.etl.IEtlKey;
 import com.linkedin.camus.etl.RecordWriterProvider;
 import com.linkedin.camus.etl.kafka.mapred.EtlMultiOutputFormat;
@@ -54,10 +55,10 @@ public class SequenceFileRecordWriterProvider implements RecordWriterProvider {
     }
 
     @Override
-    public RecordWriter<IEtlKey, CamusWrapperLight> getDataRecordWriter(
+    public RecordWriter<IEtlKey, KeyedCamusWrapper> getDataRecordWriter(
             TaskAttemptContext  context,
             String              fileName,
-            CamusWrapperLight camusWrapperLight,
+            CamusWrapperBase camusWrapperBase,
             FileOutputCommitter committer) throws IOException, InterruptedException {
 
         Configuration conf = context.getConfiguration();
@@ -104,9 +105,9 @@ public class SequenceFileRecordWriterProvider implements RecordWriterProvider {
 
         // Return a new anonymous RecordWriter that uses the
         // SequenceFile.Writer to write data to HDFS
-        return new RecordWriter<IEtlKey, CamusWrapperLight>() {
+        return new RecordWriter<IEtlKey, KeyedCamusWrapper>() {
             @Override
-            public void write(IEtlKey key, CamusWrapperLight data) throws IOException, InterruptedException {
+            public void write(IEtlKey key, KeyedCamusWrapper data) throws IOException, InterruptedException {
                 String record = (String)data.getRecord() + recordDelimiter;
                 // Use the timestamp from the EtlKey as the key for this record.
                 // TODO: Is there a better key to use here?

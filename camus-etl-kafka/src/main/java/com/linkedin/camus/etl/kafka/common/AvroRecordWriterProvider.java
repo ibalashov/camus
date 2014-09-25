@@ -1,6 +1,7 @@
 package com.linkedin.camus.etl.kafka.common;
 
-import com.linkedin.camus.coders.CamusWrapperLight;
+import com.linkedin.camus.coders.CamusWrapperBase;
+import com.linkedin.camus.coders.KeyedCamusWrapper;
 import com.linkedin.camus.etl.IEtlKey;
 import com.linkedin.camus.etl.RecordWriterProvider;
 import com.linkedin.camus.etl.kafka.mapred.EtlMultiOutputFormat;
@@ -31,10 +32,10 @@ public class AvroRecordWriterProvider implements RecordWriterProvider {
     }
 
     @Override
-    public RecordWriter<IEtlKey, CamusWrapperLight> getDataRecordWriter(
+    public RecordWriter<IEtlKey, KeyedCamusWrapper> getDataRecordWriter(
             TaskAttemptContext context,
             String fileName,
-            CamusWrapperLight data,
+            CamusWrapperBase data,
             FileOutputCommitter committer) throws IOException, InterruptedException {
         final DataFileWriter<Object> writer = new DataFileWriter<Object>(
                 new SpecificDatumWriter<Object>());
@@ -55,9 +56,9 @@ public class AvroRecordWriterProvider implements RecordWriterProvider {
 
         writer.setSyncInterval(EtlMultiOutputFormat.getEtlAvroWriterSyncInterval(context));
 
-        return new RecordWriter<IEtlKey, CamusWrapperLight>() {
+        return new RecordWriter<IEtlKey, KeyedCamusWrapper>() {
             @Override
-            public void write(IEtlKey ignore, CamusWrapperLight data) throws IOException {
+            public void write(IEtlKey ignore, KeyedCamusWrapper data) throws IOException {
                 writer.append(data.getRecord());
             }
 

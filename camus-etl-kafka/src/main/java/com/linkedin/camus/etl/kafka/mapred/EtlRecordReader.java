@@ -1,8 +1,6 @@
 package com.linkedin.camus.etl.kafka.mapred;
 
-import com.linkedin.camus.coders.CamusWrapper;
-import com.linkedin.camus.coders.CamusWrapperLight;
-import com.linkedin.camus.coders.MessageDecoder;
+import com.linkedin.camus.coders.*;
 import com.linkedin.camus.etl.kafka.CamusJob;
 import com.linkedin.camus.etl.kafka.coders.MessageDecoderFactory;
 import com.linkedin.camus.etl.kafka.common.EtlKey;
@@ -27,7 +25,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
-public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapperLight> {
+public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapperBase> {
     private static final String PRINT_MAX_DECODER_EXCEPTIONS = "max.decoder.exceptions.to.print";
     private static final String DEFAULT_SERVER = "server";
     private static final String DEFAULT_SERVICE = "service";
@@ -40,11 +38,12 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapperLight> {
     private long readBytes = 0;
 
     private boolean skipSchemaErrors = false;
-    private MessageDecoder decoder;
+//    private MessageDecoder decoder;
+    private KeyedMessageDecoder decoder;
     private final BytesWritable msgValue = new BytesWritable();
     private final BytesWritable msgKey = new BytesWritable();
     private final EtlKey key = new EtlKey();
-    private CamusWrapperLight value;
+    private CamusWrapperBase value;
 
     private int maxPullHours = 0;
     private int exceptionCount = 0;
@@ -120,10 +119,10 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapperLight> {
         }
     }
 
-    private CamusWrapper getWrappedRecord(String topicName, byte[] payload) throws IOException {
-        CamusWrapper r = null;
+    private KeyedCamusWrapper getWrappedRecord(String topicName, byte[] key, byte[] payload) throws IOException {
+        KeyedCamusWrapper r = null;
         try {
-            r = decoder.decode(payload);
+            r = decoder.decode(key, payload);
         } catch (Exception e) {
             if (!skipSchemaErrors) {
                 throw new IOException(e);
@@ -175,7 +174,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapperLight> {
     }
 
     @Override
-    public CamusWrapperLight getCurrentValue() throws IOException, InterruptedException {
+    public CamusWrapperBase getCurrentValue() throws IOException, InterruptedException {
         return value;
     }
 
@@ -226,7 +225,7 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapperLight> {
                             CamusJob.getKafkaTimeoutValue(mapperContext),
                             CamusJob.getKafkaBufferSize(mapperContext));
 
-                    decoder = MessageDecoderFactory.createMessageDecoder(context, request.getTopic());
+                    decoder = (KeyedMessageDecoder) MessageDecoderFactory.createMessageDecoder(context, request.getTopic());
                 }
                 int count = 0;
                 while (reader.getNext(key, msgValue, msgKey)) {
@@ -250,9 +249,9 @@ public class EtlRecordReader extends RecordReader<EtlKey, CamusWrapperLight> {
                     }
 
                     long tempTime = System.currentTimeMillis();
-                    CamusWrapperLight wrapper;
+                    CamusWrapperBase wrapper;
                     try {
-                        wrapper = getWrappedRecord(key.getTopic(), bytes);
+                        wrapper = getWrappedRecord(key.getTopic(), keyBytes, bytes);
                     } catch (Exception e) {
                         if (exceptionCount < getMaximumDecoderExceptionsToPrint(context)) {
                             mapperContext.write(key, new ExceptionWritable(e));

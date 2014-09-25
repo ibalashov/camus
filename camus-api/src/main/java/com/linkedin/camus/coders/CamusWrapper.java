@@ -1,7 +1,6 @@
 package com.linkedin.camus.coders;
 
 import org.apache.hadoop.io.MapWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 
 /**
@@ -10,20 +9,20 @@ import org.apache.hadoop.io.Writable;
  *
  * @author kgoodhop
  *
- * @param <R> The type of decoded payload
+ * @param <MESSAGE> The type of decoded payload
  */
-public class CamusWrapper<R> extends CamusWrapperLight<R> {
+public class CamusWrapper<MESSAGE> extends CamusWrapperBase<MESSAGE> {
     private MapWritable partitionMap;
 
-    public CamusWrapper(R record) {
+    public CamusWrapper(MESSAGE record) {
         this(record, System.currentTimeMillis());
     }
 
-    public CamusWrapper(R record, long timestamp) {
+    public CamusWrapper(MESSAGE record, long timestamp) {
         this(record, timestamp, "unknown_server", "unknown_service");
     }
 
-    public CamusWrapper(R record, long timestamp, String server, String service) {
+    public CamusWrapper(MESSAGE record, long timestamp, String server, String service) {
         super(record, timestamp);
 //        this.partitionMap = new MapWritable();
 //        partitionMap.put(new Text("server"), new Text(server));
