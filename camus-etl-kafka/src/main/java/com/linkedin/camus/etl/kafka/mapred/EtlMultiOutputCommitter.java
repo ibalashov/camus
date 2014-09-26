@@ -8,6 +8,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,6 +75,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
 
     	ArrayList<Map<String,Object>> allCountObject = new ArrayList<Map<String,Object>>();
         FileSystem fs = FileSystem.get(context.getConfiguration());
+
         if (EtlMultiOutputFormat.isRunMoveData(context)) {
             Path workPath = super.getWorkPath();
             Path baseOutDir = EtlMultiOutputFormat.getDestinationPath(context);
@@ -139,7 +141,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
         String filename = m.group(5);
 
         ArrayList parts = Lists.newArrayList(
-                filename, topic, leaderId, partition, count, offset, encodedPartition
+                filename
         );
 
         String partitionedPath =

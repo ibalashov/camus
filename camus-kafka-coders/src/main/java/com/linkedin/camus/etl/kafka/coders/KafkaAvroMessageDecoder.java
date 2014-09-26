@@ -1,25 +1,25 @@
 package com.linkedin.camus.etl.kafka.coders;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Properties;
-
-import kafka.message.Message;
-
+import com.google.common.base.Charsets;
+import com.linkedin.camus.coders.CamusWrapper;
+import com.linkedin.camus.coders.KeyedCamusWrapper;
+import com.linkedin.camus.coders.KeyedMessageDecoder;
+import com.linkedin.camus.coders.MessageDecoderException;
+import com.linkedin.camus.schemaregistry.CachedSchemaRegistry;
+import com.linkedin.camus.schemaregistry.SchemaRegistry;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.avro.generic.GenericDatumReader;
 import org.apache.avro.io.DatumReader;
 import org.apache.avro.io.DecoderFactory;
-
-import com.linkedin.camus.coders.CamusWrapper;
-import com.linkedin.camus.coders.MessageDecoder;
-import com.linkedin.camus.coders.MessageDecoderException;
-import com.linkedin.camus.schemaregistry.CachedSchemaRegistry;
-import com.linkedin.camus.schemaregistry.SchemaRegistry;
 import org.apache.hadoop.io.Text;
 
-public class KafkaAvroMessageDecoder extends MessageDecoder<byte[], Record> {
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Date;
+import java.util.Properties;
+
+public class KafkaAvroMessageDecoder extends KeyedMessageDecoder<byte[], String, byte[], Record> {
 	protected DecoderFactory decoderFactory;
 	protected SchemaRegistry<Schema> registry;
 	private Schema latestSchema;
@@ -43,7 +43,30 @@ public class KafkaAvroMessageDecoder extends MessageDecoder<byte[], Record> {
         decoderFactory = DecoderFactory.get();
 	}
 
-	private class MessageDecoderHelper {
+    @Override
+    public CamusWrapper<byte[]> decode(Record message) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public KeyedCamusWrapper<String, Record> decode(byte[] key, byte[] message) {
+        try {
+            MessageDecoderHelper helper = new MessageDecoderHelper(registry,
+                    topicName, message).invoke();
+            DatumReader<Record> reader = (helper.getTargetSchema() == null) ? new GenericDatumReader<Record>(
+                    helper.getSchema()) : new GenericDatumReader<Record>(
+                    helper.getSchema(), helper.getTargetSchema());
+
+            Record read = reader.read(null, decoderFactory.binaryDecoder(helper.getBuffer().array(),
+                    helper.getStart(), helper.getLength(), null));
+            return new KeyedCamusWrapper(new String(key, Charsets.UTF_8), read, new Date().getTime());
+
+        } catch (IOException e) {
+            throw new MessageDecoderException(e);
+        }
+    }
+
+    protected class MessageDecoderHelper {
 		//private Message message;
 		private ByteBuffer buffer;
 		private Schema schema;
@@ -85,8 +108,8 @@ public class KafkaAvroMessageDecoder extends MessageDecoder<byte[], Record> {
 
 		private ByteBuffer getByteBuffer(byte[] payload) {
 			ByteBuffer buffer = ByteBuffer.wrap(payload);
-			if (buffer.get() != MAGIC_BYTE)
-				throw new IllegalArgumentException("Unknown magic byte!");
+//			if (buffer.get() != MAGIC_BYTE)
+//				throw new IllegalArgumentException("Unknown magic byte!");
 			return buffer;
 		}
 
@@ -98,28 +121,11 @@ public class KafkaAvroMessageDecoder extends MessageDecoder<byte[], Record> {
 				throw new IllegalStateException("Unknown schema id: " + id);
 
 			start = buffer.position() + buffer.arrayOffset();
-			length = buffer.limit() - 5;
+			length = buffer.limit() - 4;
 
 			// try to get a target schema, if any
 			targetSchema = latestSchema;
 			return this;
-		}
-	}
-
-	public CamusWrapper<Record> decode(byte[] payload) {
-		try {
-			MessageDecoderHelper helper = new MessageDecoderHelper(registry,
-					topicName, payload).invoke();
-			DatumReader<Record> reader = (helper.getTargetSchema() == null) ? new GenericDatumReader<Record>(
-					helper.getSchema()) : new GenericDatumReader<Record>(
-					helper.getSchema(), helper.getTargetSchema());
-
-			return new CamusAvroWrapper(reader.read(null, decoderFactory
-                    .binaryDecoder(helper.getBuffer().array(),
-                            helper.getStart(), helper.getLength(), null)));
-	
-		} catch (IOException e) {
-			throw new MessageDecoderException(e);
 		}
 	}
 

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import org.apache.hadoop.conf.Configuration;
@@ -186,9 +187,8 @@ public class EtlMultiOutputFormat extends FileOutputFormat<EtlKey, Object> {
     }
 
     public static String getWorkingFileName(JobContext context, EtlKey key, String filename) throws IOException {
+        Preconditions.checkArgument(!Strings.isNullOrEmpty(filename));
         Partitioner partitioner = getPartitioner(context, key.getTopic());
-//        String topicProcessed = key.getTopic().replaceAll("\\.", "_");
-
         List parts = Lists.newArrayList(
                 "data",
                 key.getTopic(),
@@ -199,6 +199,11 @@ public class EtlMultiOutputFormat extends FileOutputFormat<EtlKey, Object> {
         if (!Strings.isNullOrEmpty(filename)) {
             parts.add(filename);
         }
+
+//        List parts = Lists.newArrayList(
+//                "data",
+//                filename
+//        );
         return Joiner.on('.').join(parts);
     }
     

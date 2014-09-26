@@ -95,6 +95,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
         FileSystem fs = path.getFileSystem(context.getConfiguration());
         if (!isCompressed) {
             FSDataOutputStream fileOut = fs.create(path, false);
+            System.out.println("fileOut = " + fileOut);
             return new ByteRecordWriter(fileOut, recordDelimiter);
         } else {
             FSDataOutputStream fileOut = fs.create(path, false);
