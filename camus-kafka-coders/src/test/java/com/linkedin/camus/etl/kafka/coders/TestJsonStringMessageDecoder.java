@@ -1,6 +1,8 @@
 package com.linkedin.camus.etl.kafka.coders;
 
+import com.google.common.base.Charsets;
 import com.linkedin.camus.coders.CamusWrapper;
+import com.linkedin.camus.coders.KeyedCamusWrapper;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -25,7 +27,7 @@ public class TestJsonStringMessageDecoder {
         String payload = "{\"timestamp\":  "+ testTimestamp + ", \"myData\": \"myValue\"}";
         byte[] bytePayload = payload.getBytes();
 
-        CamusWrapper actualResult = testDecoder.decode(bytePayload);
+        KeyedCamusWrapper actualResult = testDecoder.decode("filename".getBytes(Charsets.UTF_8), bytePayload);
         long actualTimestamp = actualResult.getTimestamp();
         assertEquals(expectedTimestamp, actualTimestamp);
     }
@@ -46,7 +48,7 @@ public class TestJsonStringMessageDecoder {
         testDecoder.init(testProperties, "testTopic");
         String payload = "{\"timestamp\":  "+ testTimestamp + ", \"myData\": \"myValue\"}";
         byte[] bytePayload = payload.getBytes();
-        CamusWrapper actualResult = testDecoder.decode(bytePayload);
+        KeyedCamusWrapper actualResult = testDecoder.decode("filename".getBytes(Charsets.UTF_8), bytePayload);
         long actualTimestamp = actualResult.getTimestamp();
 
         assertEquals(expectedTimestamp, actualTimestamp);
@@ -69,7 +71,7 @@ public class TestJsonStringMessageDecoder {
         testDecoder.init(testProperties, "testTopic");
         String payload = "{\"timestamp\":  \""+ testTimestamp + "\", \"myData\": \"myValue\"}";
         byte[] bytePayload = payload.getBytes();
-        CamusWrapper actualResult = testDecoder.decode(bytePayload);
+        KeyedCamusWrapper actualResult = testDecoder.decode("filename".getBytes(Charsets.UTF_8), bytePayload);
         long actualTimestamp = actualResult.getTimestamp();
 
         assertEquals(expectedTimestamp, actualTimestamp);
@@ -81,7 +83,7 @@ public class TestJsonStringMessageDecoder {
         byte[] bytePayload = "{\"key: value}".getBytes();
 
         JsonStringMessageDecoder testDecoder = new JsonStringMessageDecoder();
-        CamusWrapper actualResult = testDecoder.decode(bytePayload);
+        KeyedCamusWrapper actualResult = testDecoder.decode("filename".getBytes(Charsets.UTF_8), bytePayload);
     }
 
 }

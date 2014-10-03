@@ -1,10 +1,9 @@
 package com.linkedin.camus.etl.kafka.common;
 
-import com.linkedin.camus.coders.CamusWrapper;
+import com.linkedin.camus.coders.KeyedCamusWrapper;
 import com.linkedin.camus.etl.IEtlKey;
 import com.linkedin.camus.etl.RecordWriterProvider;
 import com.linkedin.camus.etl.kafka.mapred.EtlMultiOutputFormat;
-import java.io.IOException;
 import org.apache.avro.file.CodecFactory;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericRecord;
@@ -15,10 +14,8 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-/**
- *
- *
- */
+import java.io.IOException;
+
 public class AvroRecordWriterProvider implements RecordWriterProvider {
     public final static String EXT = ".avro";
 
@@ -31,13 +28,12 @@ public class AvroRecordWriterProvider implements RecordWriterProvider {
     }
 
     @Override
-    public RecordWriter<IEtlKey, CamusWrapper> getDataRecordWriter(
+    public RecordWriter<IEtlKey, KeyedCamusWrapper> getDataRecordWriter(
             TaskAttemptContext context,
             String fileName,
-            CamusWrapper data,
+            KeyedCamusWrapper data,
             FileOutputCommitter committer) throws IOException, InterruptedException {
-        final DataFileWriter<Object> writer = new DataFileWriter<Object>(
-                new SpecificDatumWriter<Object>());
+        final DataFileWriter<Object> writer = new DataFileWriter<>(new SpecificDatumWriter<>());
 
         if (FileOutputFormat.getCompressOutput(context)) {
             if ("snappy".equals(EtlMultiOutputFormat.getEtlOutputCodec(context))) {
@@ -55,9 +51,9 @@ public class AvroRecordWriterProvider implements RecordWriterProvider {
 
         writer.setSyncInterval(EtlMultiOutputFormat.getEtlAvroWriterSyncInterval(context));
 
-        return new RecordWriter<IEtlKey, CamusWrapper>() {
+        return new RecordWriter<IEtlKey, KeyedCamusWrapper>() {
             @Override
-            public void write(IEtlKey ignore, CamusWrapper data) throws IOException {
+            public void write(IEtlKey ignore, KeyedCamusWrapper data) throws IOException {
                 writer.append(data.getRecord());
             }
 

@@ -1,27 +1,24 @@
 package com.linkedin.camus.etl.kafka.common;
 
-import com.linkedin.camus.coders.CamusWrapper;
+import com.linkedin.camus.coders.KeyedCamusWrapper;
 import com.linkedin.camus.etl.IEtlKey;
 import com.linkedin.camus.etl.RecordWriterProvider;
 import com.linkedin.camus.etl.kafka.mapred.EtlMultiOutputFormat;
-
-import java.io.DataOutputStream;
-import java.io.IOException;
-
-import org.apache.avro.file.CodecFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.compress.CompressionCodec;
-import org.apache.hadoop.io.compress.SnappyCodec;
 import org.apache.hadoop.io.compress.DefaultCodec;
+import org.apache.hadoop.io.compress.SnappyCodec;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.ReflectionUtils;
-import org.apache.log4j.Logger;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 
 /**
@@ -71,10 +68,10 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
     }
 
     @Override
-    public RecordWriter<IEtlKey, CamusWrapper> getDataRecordWriter(
+    public RecordWriter<IEtlKey, KeyedCamusWrapper> getDataRecordWriter(
             TaskAttemptContext  context,
             String              fileName,
-            CamusWrapper        camusWrapper,
+            KeyedCamusWrapper camusWrapperBase,
             FileOutputCommitter committer) throws IOException, InterruptedException {
 
         // If recordDelimiter hasn't been initialized, do so now
@@ -96,6 +93,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
         FileSystem fs = path.getFileSystem(context.getConfiguration());
         if (!isCompressed) {
             FSDataOutputStream fileOut = fs.create(path, false);
+            System.out.println("fileOut = " + fileOut);
             return new ByteRecordWriter(fileOut, recordDelimiter);
         } else {
             FSDataOutputStream fileOut = fs.create(path, false);
@@ -123,7 +121,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
         */
     }
     
-    protected static class ByteRecordWriter extends RecordWriter<IEtlKey, CamusWrapper> {
+    protected static class ByteRecordWriter extends RecordWriter<IEtlKey, KeyedCamusWrapper> {
         private DataOutputStream out;
         private String recordDelimiter;
 
@@ -133,7 +131,7 @@ public class StringRecordWriterProvider implements RecordWriterProvider {
         }
 
         @Override
-        public void write(IEtlKey ignore, CamusWrapper value) throws IOException {
+        public void write(IEtlKey ignore, KeyedCamusWrapper value) throws IOException {
             boolean nullValue = value == null;
             if (!nullValue) {
             	String record = (String) value.getRecord() + recordDelimiter;

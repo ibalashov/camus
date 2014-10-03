@@ -91,19 +91,19 @@ public class EtlKey implements WritableComparable<EtlKey>, IEtlKey {
 	}
 
 	public String getServer() {
-        return partitionMap.get(SERVER).toString();
+        return "fake_server";
 	}
 
 	public void setServer(String newServer) {
-        partitionMap.put(SERVER, new Text(newServer));
+//        partitionMap.put(SERVER, new Text(newServer));
 	}
 
 	public String getService() {
-        return partitionMap.get(SERVICE).toString();
+        return "fake_service";
 	}
 
 	public void setService(String newService) {
-        partitionMap.put(SERVICE, new Text(newService));
+//        partitionMap.put(SERVICE, new Text(newService));
 	}
 
 	public long getTime() {

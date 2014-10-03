@@ -230,9 +230,9 @@ public class CamusJob extends Configured implements Tool {
 		startTiming("pre-setup");
 		startTiming("total");
 		Job job = createJob(props);
-		if (getLog4jConfigure(job)) {
-			DOMConfigurator.configure("log4j.xml");
-		}
+//		if (getLog4jConfigure(job)) {
+//			DOMConfigurator.configure("log4j.xml");
+//		}
 		FileSystem fs = FileSystem.get(job.getConfiguration());
 
 		log.info("Dir Destination set to: "

@@ -1,5 +1,6 @@
 package com.linkedin.camus.etl.kafka.mapred;
 
+import com.linkedin.camus.coders.CamusWrapperBase;
 import com.linkedin.camus.coders.CamusWrapper;
 import com.linkedin.camus.coders.MessageDecoder;
 import com.linkedin.camus.etl.kafka.CamusJob;
@@ -49,7 +50,7 @@ import org.apache.log4j.Logger;
 /**
  * Input format for a Kafka pull job.
  */
-public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
+public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapperBase> {
 
 	public static final String KAFKA_BLACKLIST_TOPIC = "kafka.blacklist.topics";
 	public static final String KAFKA_WHITELIST_TOPIC = "kafka.whitelist.topics";
@@ -80,7 +81,7 @@ public class EtlInputFormat extends InputFormat<EtlKey, CamusWrapper> {
 	}
 
 	@Override
-	public RecordReader<EtlKey, CamusWrapper> createRecordReader(
+	public RecordReader<EtlKey, CamusWrapperBase> createRecordReader(
 			InputSplit split, TaskAttemptContext context) throws IOException,
 			InterruptedException {
 		return new EtlRecordReader(split, context);

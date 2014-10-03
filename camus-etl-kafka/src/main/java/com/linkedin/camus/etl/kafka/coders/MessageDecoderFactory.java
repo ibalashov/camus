@@ -11,10 +11,10 @@ import com.linkedin.camus.etl.kafka.mapred.EtlInputFormat;
 
 public class MessageDecoderFactory {
     
-    public static MessageDecoder<?,?> createMessageDecoder(JobContext context, String topicName){
-        MessageDecoder<?,?> decoder;
+    public static MessageDecoder createMessageDecoder(JobContext context, String topicName){
+        MessageDecoder decoder;
         try {
-            decoder = (MessageDecoder<?,?>) EtlInputFormat.getMessageDecoderClass(context).newInstance();
+            decoder = EtlInputFormat.getMessageDecoderClass(context).newInstance();
             
             Properties props = new Properties();
             for (Entry<String, String> entry : context.getConfiguration()){

@@ -1,15 +1,10 @@
 package com.linkedin.camus.etl.kafka.mapred;
 
-import java.io.BufferedOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.linkedin.camus.etl.RecordWriterProvider;
+import com.linkedin.camus.etl.kafka.common.EtlCounts;
+import com.linkedin.camus.etl.kafka.common.EtlKey;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -21,9 +16,15 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 
-import com.linkedin.camus.etl.RecordWriterProvider;
-import com.linkedin.camus.etl.kafka.common.EtlCounts;
-import com.linkedin.camus.etl.kafka.common.EtlKey;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EtlMultiOutputCommitter extends FileOutputCommitter {
     private Pattern workingFileMetadataPattern;
@@ -35,11 +36,12 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
     private final RecordWriterProvider recordWriterProvider;
     private Logger log;
 
-    public void addCounts(EtlKey key) throws IOException {
-        String workingFileName = EtlMultiOutputFormat.getWorkingFileName(context, key);
-        if (!counts.containsKey(workingFileName))
+    public void addCounts(EtlKey key, String filename) throws IOException {
+        String workingFileName = EtlMultiOutputFormat.getWorkingFileName(context, key, filename);
+        if (!counts.containsKey(workingFileName)) {
             counts.put(workingFileName, new EtlCounts(key.getTopic(),
-            EtlMultiOutputFormat.getMonitorTimeGranularityMs(context)));
+                    EtlMultiOutputFormat.getMonitorTimeGranularityMs(context)));
+        }
         counts.get(workingFileName).incrementMonitorCount(key);
         addOffset(key);
     }
@@ -61,7 +63,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-        workingFileMetadataPattern = Pattern.compile("data\\.([^\\.]+)\\.([\\d_]+)\\.(\\d+)\\.([^\\.]+)-m-\\d+" + recordWriterProvider.getFilenameExtension());
+        workingFileMetadataPattern = Pattern.compile("data\\.([^\\.]+)\\.([\\d_]+)\\.(\\d+)\\.([^\\.]+)\\.(.*)-m-\\d+" + recordWriterProvider.getFilenameExtension());
         this.log = log;
     }
 
@@ -70,6 +72,7 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
 
     	ArrayList<Map<String,Object>> allCountObject = new ArrayList<Map<String,Object>>();
         FileSystem fs = FileSystem.get(context.getConfiguration());
+
         if (EtlMultiOutputFormat.isRunMoveData(context)) {
             Path workPath = super.getWorkPath();
             log.info("work path: " + workPath);
@@ -139,16 +142,22 @@ public class EtlMultiOutputCommitter extends FileOutputCommitter {
         String leaderId = m.group(2);
         String partition = m.group(3);
         String encodedPartition = m.group(4);
+        String filename = m.group(5);
+
+        ArrayList parts = Lists.newArrayList(
+                filename
+        );
 
         String partitionedPath =
             EtlMultiOutputFormat.getPartitioner(context, topic).generatePartitionedPath(context, topic, leaderId,
                             Integer.parseInt(partition), encodedPartition);
 
-        return partitionedPath +
-                    "/" + topic + "." + leaderId + "." + partition +
-                    "." + count+
-                    "." + offset + 
-                    "." + encodedPartition + 
-                    recordWriterProvider.getFilenameExtension();
+//        return partitionedPath +
+//                    "/" + topic + "." + leaderId + "." + partition +
+//                    "." + count+
+//                    "." + offset +
+//                    "." + encodedPartition +
+//                    recordWriterProvider.getFilenameExtension();
+        return partitionedPath + "/" + Joiner.on('.').join(parts);
     }
 }

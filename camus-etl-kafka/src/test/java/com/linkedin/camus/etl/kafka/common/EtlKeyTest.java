@@ -34,8 +34,8 @@ public class EtlKeyTest {
         assertEquals(4, newKey.getChecksum());
         assertEquals("topic", newKey.getTopic());
         assertEquals(5, newKey.getTime());
-        assertEquals("server", newKey.getServer());
-        assertEquals("service", newKey.getService());
+        assertEquals("fake_server", newKey.getServer());
+        assertEquals("fake_service", newKey.getService());
     }
 
     public static class OldEtlKey implements WritableComparable<OldEtlKey> {
